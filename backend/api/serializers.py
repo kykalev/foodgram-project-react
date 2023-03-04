@@ -4,6 +4,7 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from recipes.models import *
+from user.models import *
 
 
 class Base64ImageField(serializers.ImageField):
@@ -16,11 +17,18 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор Пользователя."""
+    class Meta:
+        model = Сu
+        fields = ('id', 'name', 'color', 'slug')
+
+
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор тегов."""
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('id', 'name', 'color', 'slug')
         read_only_fields = ('name', 'color', 'slug')
 
 

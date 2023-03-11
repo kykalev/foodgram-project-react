@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CustomUser
+from .models import *
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -10,4 +10,13 @@ class CustomUserAdmin(admin.ModelAdmin):
     list_editable = ('username', 'first_name', 'last_name', 'email')
 
 
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('id','user', 'author')
+    list_display_links = ('id',)
+    list_filter = ('user',)
+    list_editable = ('user', 'author')
+
+
+
+admin.site.register(Follow, FollowAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)

@@ -1,6 +1,8 @@
 import base64
 
+from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+
 from rest_framework import serializers
 
 from recipes.models import *
@@ -19,9 +21,36 @@ class Base64ImageField(serializers.ImageField):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор Пользователя."""
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
-        model = Сu
-        fields = ('id', 'name', 'color', 'slug')
+        model = CustomUser
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name',
+                  'email', 'is_subscribed')
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return Follow.objects.filter(user=user,
+                                         subscribe=obj).exists()
+        return False
+
+    def create(self, validated_data):
+        return CustomUser.objects.create_user(
+            **validated_data, password=self.initial_data['password']
+        )
+    
+    def validate(self, data):
+        if data.get('username') == 'me':
+            raise serializers.ValidationError(
+                'Username указан неверно!')
+        return data
+
+
+class PasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(required=True)
+    current_password = serializers.CharField(required=True)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -33,11 +62,22 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    pass
+    """Сериализатор Ингредиентов."""
+    class Meta:
+        model = Ingredient
+        fields = ('id', 'name', 'measurement_unit')
+        read_only_fields = ('name', 'measurement_unit')
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False, allow_null=True)
+    tags = TagSerializer(many=True)
+    ingredients = TagSerializer(many=True)
+
+    class Meta:
+        model = Ingredient
+        fields = ('ingredients', 'tags', 'image', 'name',
+                  'text', 'cooking_time')
 
 
 class FavoriteRecipeSerializer(serializers.ModelSerializer):

@@ -17,15 +17,14 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 
 class Ingredient(models.Model):
     """Модель ингредиентов."""
     name = models.CharField(verbose_name='Название ингредиента',
                             max_length=200)
     measurement_unit = models.CharField(verbose_name='Мера',
-                            max_length=200)
-
+                                        max_length=200)
 
     class Meta:
         verbose_name = 'Ингредиент'
@@ -43,7 +42,6 @@ class AmountIngredient(models.Model):
                                    on_delete=models.CASCADE)
     amount = models.PositiveIntegerField(
         verbose_name='Количество ингредиента')
-
 
     class Meta:
         verbose_name = 'Количество ингредиента'
@@ -72,7 +70,7 @@ class Recipe(models.Model):
         verbose_name='Время приготовления',
         validators=[MinValueValidator(
             1, message='Время приготовления не может быть меньше 1')]
-        )
+    )
     pub_date = models.DateTimeField(verbose_name='Время публикации',
                                     auto_now_add=True)
 
@@ -91,9 +89,9 @@ class FavoriteRecipe(models.Model):
                              related_name='favorites',
                              on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт',
-                             related_name='favorites',
-                             on_delete=models.CASCADE)
-    
+                               related_name='favorites',
+                               on_delete=models.CASCADE)
+
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
@@ -108,9 +106,9 @@ class ShoppingList(models.Model):
                              related_name='shopping_lists',
                              on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт',
-                             related_name='shopping_lists',
-                             on_delete=models.CASCADE)
-    
+                               related_name='shopping_lists',
+                               on_delete=models.CASCADE)
+
     class Meta:
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'

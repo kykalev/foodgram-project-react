@@ -4,7 +4,6 @@ from django.core.management.base import BaseCommand
 
 from recipes.models import Ingredient
 
-
 MYPATH = '../data'
 FILENAME = 'ingredients.csv'
 
@@ -15,8 +14,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         with open(MYPATH + '/' + FILENAME, encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file,
-                                        fieldnames = ['name',
-                                                      'measurement_unit'],
+                                        fieldnames=['name',
+                                                    'measurement_unit'],
                                         delimiter=',')
             for row in csv_reader:
                 name = row['name']

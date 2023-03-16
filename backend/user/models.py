@@ -9,8 +9,8 @@ class CustomUser(AbstractUser):
         max_length=150,
         unique=True,
         help_text=(
-            f"Требуется 150 символов или меньше, "
-            f"только буквы, цифры и @/./+/-/_."
+            "Требуется 150 символов или меньше, "
+            "только буквы, цифры и @/./+/-/_."
         ),
         validators=[AbstractUser.username_validator],
         error_messages={

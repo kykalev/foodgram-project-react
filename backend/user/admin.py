@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import *
+from .models import CustomUser, Follow
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -11,11 +11,10 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('id','user', 'author')
+    list_display = ('id', 'user', 'author')
     list_display_links = ('id',)
     list_filter = ('user',)
     list_editable = ('user', 'author')
-
 
 
 admin.site.register(Follow, FollowAdmin)

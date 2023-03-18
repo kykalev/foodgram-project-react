@@ -1,3 +1,5 @@
+from colorfield.fields import ColorField
+
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -7,7 +9,9 @@ from user.models import CustomUser
 class Tag(models.Model):
     """Модель Тегов."""
     name = models.CharField(verbose_name='Название тега', max_length=200)
-    color = models.CharField(verbose_name='Цвет в HEX', max_length=7)
+    color = ColorField(default='#FF0000', verbose_name='Цвет в HEX',
+                       max_length=7)
+    # color = models.CharField(verbose_name='Цвет в HEX', max_length=7)
     slug = models.SlugField(verbose_name='Слаг тега', unique=True,
                             max_length=200)
 
@@ -24,31 +28,18 @@ class Ingredient(models.Model):
     name = models.CharField(verbose_name='Название ингредиента',
                             max_length=200)
     measurement_unit = models.CharField(verbose_name='Мера',
-                                        max_length=200)
+                                        max_length=10)
 
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        constraints = [models.UniqueConstraint(
+            fields=['name', 'measurement_unit'],
+            name='unique_ingredient_model'
+        )]
 
     def __str__(self):
         return self.name
-
-
-class AmountIngredient(models.Model):
-    """Связующая модель ингредиентов и их количества."""
-    ingredient = models.ForeignKey(Ingredient,
-                                   related_name='ingredients',
-                                   verbose_name='Название ингредиента',
-                                   on_delete=models.CASCADE)
-    amount = models.PositiveIntegerField(
-        verbose_name='Количество ингредиента')
-
-    class Meta:
-        verbose_name = 'Количество ингредиента'
-        verbose_name_plural = 'Количество ингредиентов'
-
-    def __str__(self):
-        return f'{self.amount} - {self.ingredient}'
 
 
 class Recipe(models.Model):
@@ -56,7 +47,8 @@ class Recipe(models.Model):
     author = models.ForeignKey(CustomUser, verbose_name='Автор',
                                related_name='recipes',
                                on_delete=models.CASCADE)
-    ingredients = models.ManyToManyField(AmountIngredient,
+    ingredients = models.ManyToManyField(Ingredient,
+                                         through='AmountIngredient',
                                          verbose_name='Ингредиенты',
                                          related_name='recipes')
     tags = models.ManyToManyField(Tag, related_name='recipes',
@@ -83,6 +75,33 @@ class Recipe(models.Model):
         return self.name
 
 
+class AmountIngredient(models.Model):
+    """Связующая между рецептом и ингредиентом, которая показывает
+    количество ингредиента для каждого конкретного рецепта."""
+    recipe = models.ForeignKey(Recipe,
+                               related_name='recipes',
+                               verbose_name='Название рецепта',
+                               on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient,
+                                   related_name='ingredients',
+                                   verbose_name='Название ингредиента',
+                                   on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField(
+        verbose_name='Количество ингредиента',
+        validators=[MinValueValidator(0.1)])
+
+    class Meta:
+        verbose_name = 'Количество ингредиента'
+        verbose_name_plural = 'Количество ингредиентов'
+        constraints = [models.UniqueConstraint(
+            fields=['recipe', 'ingredient'],
+            name='unique_amountingredient_model'
+        )]
+
+    def __str__(self):
+        return f'{self.amount} - {self.ingredient}'
+
+
 class FavoriteRecipe(models.Model):
     """ Модель избранного рецепта."""
     user = models.ForeignKey(CustomUser, verbose_name='Пользователь',
@@ -95,6 +114,10 @@ class FavoriteRecipe(models.Model):
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
+        constraints = [models.UniqueConstraint(
+            fields=['user', 'recipe'],
+            name='unique_favoriteRecipe_model'
+        )]
 
     def __str__(self):
         return f'{self.recipe.name} в избранных у {self.user.username}'

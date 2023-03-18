@@ -12,15 +12,26 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 from pathlib import Path
 
+def read_env(path: str):
+    with open (path, 'r') as env_file:
+        envs_data = env_file.readlines()
+
+    for line in envs_data:
+        key, *value = line.split('=')
+        value = '='.join(value)
+        os.environ[key] = value
+
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+read_env(f'{BASE_DIR}\\.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'SUP3R-S3CR3T-K3Y-F0R-MY-PR0J3CT')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,6 +55,7 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'recipes.apps.RecipesConfig',
     'user.apps.UserConfig',
+    'colorfield',
 ]
 
 MIDDLEWARE = [

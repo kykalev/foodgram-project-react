@@ -13,7 +13,7 @@ from user.models import CustomUser, Follow
 
 from .filters import RecipeFilter
 from .pagination import CustomPaginator
-from .permissons import RecipePermission, UserEditPermission
+from .permissons import IsAuthorOrReadOnlyRecipePermission, UserEditPermission
 from .serializers import (FollowCreateDeleteSerializer, IngredientSerializer,
                           PasswordSerializer, RecipeCreateSerializer,
                           RecipeListSerializer, RecipeSerializer,
@@ -98,7 +98,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Представление рецептов, избранных рецептов, список покупок."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
-    permission_classes = (RecipePermission,)
+    permission_classes = (IsAuthorOrReadOnlyRecipePermission,)
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
 

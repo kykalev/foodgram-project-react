@@ -227,12 +227,14 @@ class RecipeCreateSerializer(RecipeListSerializer):
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
+        print(ingredients)
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(author=self.context['request'].user,
                                        **validated_data)
         amounts = []
-        for ingred in ingredients:
-            amount, status = AmountIngredient.objects.get_or_create(**ingred)
+        for ingredient in ingredients:
+            amount, status = AmountIngredient.objects.get_or_create(
+                **ingredient)
             amounts.append(amount)
         recipe.ingredients.set(amounts)
         recipe.tags.set(tags)
@@ -252,8 +254,7 @@ class RecipeCreateSerializer(RecipeListSerializer):
         amounts = []
         for ingredient in ingredients:
             amount, status = AmountIngredient.objects.get_or_create(
-                **ingredient
-            )
+                **ingredient)
             amounts.append(amount)
         instance.ingredients.set(amounts)
         instance.tags.set(tags)

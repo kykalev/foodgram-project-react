@@ -12,8 +12,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 from pathlib import Path
 
+
 def read_env(path: str):
-    with open (path, 'r') as env_file:
+    with open(path, 'r') as env_file:
         envs_data = env_file.readlines()
 
     for line in envs_data:
@@ -22,9 +23,9 @@ def read_env(path: str):
         os.environ[key] = value
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 read_env(f'{BASE_DIR}\\.env')
 # Quick-start development settings - unsuitable for production

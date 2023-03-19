@@ -79,11 +79,11 @@ class AmountIngredient(models.Model):
     """Связующая между рецептом и ингредиентом, которая показывает
     количество ингредиента для каждого конкретного рецепта."""
     recipe = models.ForeignKey(Recipe,
-                               related_name='recipes',
+                               related_name='amountingredients',
                                verbose_name='Название рецепта',
                                on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient,
-                                   related_name='ingredients',
+                                   related_name='amountingredients',
                                    verbose_name='Название ингредиента',
                                    on_delete=models.CASCADE)
     amount = models.PositiveIntegerField(

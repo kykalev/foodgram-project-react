@@ -5,8 +5,8 @@ class UserEditPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if request.method in ('PUT', 'PATCH') and (
-            not request.user.is_superuser):
-                return False
+                not request.user.is_superuser):
+            return False
         else:
             return True
 

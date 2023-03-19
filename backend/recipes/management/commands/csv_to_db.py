@@ -20,10 +20,12 @@ class Command(BaseCommand):
                                         fieldnames=['name',
                                                     'measurement_unit'],
                                         delimiter=',')
+            ingredients = []
             for row in csv_reader:
                 name = row['name']
                 measurement_unit = row['measurement_unit']
                 ingredient = Ingredient(name=name,
                                         measurement_unit=measurement_unit)
-                ingredient.save()
+                ingredients.append(ingredient)
+            Ingredient.objects.bulk_create(ingredients)
         self.stdout.write('Таблица с ингредиентами заполнена.')

@@ -115,7 +115,10 @@ class SubscribeListSerializer(serializers.ModelSerializer):
         limit = request.GET.get('recipes_limit')
         recipes = obj.recipes.all()
         if limit:
-            recipes = recipes[:int(limit)]
+            try:
+                recipes = recipes[:int(limit)]
+            except TypeError:
+                print('limit должен иметь тип int')
         serializer = RecipeSerializer(recipes, many=True, read_only=True)
         return serializer.data
 
@@ -144,10 +147,11 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class AmountIngredientSerializer(serializers.ModelSerializer):
     """Вспомогательный сериализатор. Ингредиент с количеством для рецепта."""
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),
-        source='ingredient'
-    )
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    # id = serializers.PrimaryKeyRelatedField(
+    #     queryset=Ingredient.objects.all(),
+    #     source='ingredient'
+    # )
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit')
@@ -210,11 +214,6 @@ class RecipeCreateSerializer(RecipeListSerializer):
         }
 
     def validate(self, obj):
-        for field in ['name', 'text', 'cooking_time']:
-            if not obj.get(field):
-                raise serializers.ValidationError(
-                    f'{field} - Обязательное поле.'
-                )
         if not obj.get('tags'):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 тег.'
@@ -223,22 +222,53 @@ class RecipeCreateSerializer(RecipeListSerializer):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
+        # set_ingredient_id = set()
+        # for ingredient in obj:
+        #     ingredient_id = ingredient['ingredients']['id']
+        #     if not Ingredient.objects.filter(id=ingredient_id).exists():
+        #         raise serializers.ValidationError(
+        #             f'Ингредиента с id {ingredient_id} нет')
+        #     if ingredient_id in set_ingredient_id:
+        #         raise serializers.ValidationError(
+        #             f'подторяющийся id {ingredient_id}')
+        #     set_ingredient_id.add(ingredient_id)
+        #     if ingredient['amount'] <=0:
+        #         raise serializers.ValidationError(
+        #             'количество игредиента должно быть больше 0')
         return obj
 
+    # def create(self, validated_data):
+    #     ingredients = validated_data.pop('ingredients')
+    #     tags = validated_data.pop('tags')
+    #     recipe = Recipe.objects.create(author=self.context['request'].user,
+    #                                    **validated_data)
+    #     amounts = []
+    #     for ingredient in ingredients:
+    #         amount, status = AmountIngredient.objects.get_or_create(
+    #             **ingredient)
+    #         amounts.append(amount)
+    #     recipe.ingredients.set(amounts)
+    #     recipe.tags.set(tags)
+    #     return recipe
+
+    def tags_and_ingredients_set(self, recipe, tags, ingredients):
+        recipe.tags.set(tags)
+        AmountIngredient.objects.bulk_create(
+            [AmountIngredient(
+                recipe=recipe,
+                ingredient=Ingredient.objects.get(pk=ingredient['id']),
+                amount=ingredient['amount']
+            ) for ingredient in ingredients]
+        )
+
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        print(ingredients)
         tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=self.context['request'].user,
                                        **validated_data)
-        amounts = []
-        for ingredient in ingredients:
-            amount, status = AmountIngredient.objects.get_or_create(
-                **ingredient)
-            amounts.append(amount)
-        recipe.ingredients.set(amounts)
-        recipe.tags.set(tags)
+        self.tags_and_ingredients_set(recipe, tags, ingredients)
         return recipe
+
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop('ingredients')

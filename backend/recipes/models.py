@@ -11,7 +11,6 @@ class Tag(models.Model):
     name = models.CharField(verbose_name='Название тега', max_length=200)
     color = ColorField(default='#FF0000', verbose_name='Цвет в HEX',
                        max_length=7)
-    # color = models.CharField(verbose_name='Цвет в HEX', max_length=7)
     slug = models.SlugField(verbose_name='Слаг тега', unique=True,
                             max_length=200)
 
@@ -88,7 +87,7 @@ class AmountIngredient(models.Model):
                                    on_delete=models.CASCADE)
     amount = models.PositiveIntegerField(
         verbose_name='Количество ингредиента',
-        validators=[MinValueValidator(0.1)])
+        validators=[MinValueValidator(0)])
 
     class Meta:
         verbose_name = 'Количество ингредиента'
@@ -135,6 +134,10 @@ class ShoppingList(models.Model):
     class Meta:
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
+        constraints = [models.UniqueConstraint(
+            fields=['user', 'recipe'],
+            name='unique_shoppingList_model'
+        )]
 
     def __str__(self):
         return f'У {self.user.username} список покупок для {self.recipe.name}'

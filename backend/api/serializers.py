@@ -1,5 +1,5 @@
 import base64
-import collections
+import logging
 
 from django.core.files.base import ContentFile
 from django.db import transaction
@@ -9,6 +9,8 @@ from rest_framework.generics import get_object_or_404
 from recipes.models import (AmountIngredient, FavoriteRecipe, Ingredient,
                             Recipe, ShoppingList, Tag)
 from user.models import CustomUser, Follow
+
+logger = logging.getLogger()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -121,7 +123,7 @@ class SubscribeListSerializer(serializers.ModelSerializer):
             try:
                 recipes = recipes[:int(limit)]
             except TypeError:
-                print('limit должен иметь тип int')
+                logger.warning('limit должен иметь тип int')
         serializer = RecipeSerializer(recipes, many=True, read_only=True)
         return serializer.data
 
@@ -233,15 +235,14 @@ class RecipeCreateSerializer(RecipeListSerializer):
                 'Нужно указать минимум 1 ингредиент.'
             )
         all_ingredients = [x.get('id') for x in obj.get('ingredients')]
-        doubles = [item for item, count in collections.Counter(
-            all_ingredients).items() if count > 1]
-        if doubles:
+        set_all_ingredients = set(all_ingredients)
+        if len(set_all_ingredients) != len(all_ingredients):
             raise serializers.ValidationError(
-                f'подторяющийся id {", ".join(map(str, doubles))}')
-        ingredients_id = set(all_ingredients)
+                'Ингредиенты не должны повторяться.'
+            )
         ingredients_in_db = set(x[0] for x in list(Ingredient.objects.filter(
-            id__in=ingredients_id).values_list('id')))
-        missing = ingredients_id - ingredients_in_db
+            id__in=set_all_ingredients).values_list('id')))
+        missing = set_all_ingredients - ingredients_in_db
         if missing:
             raise serializers.ValidationError(
                 f'Ингредиента(ов) с id {", ".join(map(str, missing))} нет')
@@ -282,13 +283,14 @@ class RecipeCreateSerializer(RecipeListSerializer):
             'cooking_time',
             instance.cooking_time
         )
-        instance.save()
-        amounts = []
+        AmountIngredient.objects.filter(recipe=instance).delete()
         for ingredient in ingredients:
-            amount, status = AmountIngredient.objects.get_or_create(
-                **ingredient)
-            amounts.append(amount)
-        instance.ingredients.set(amounts)
+            amount = ingredient['amount']
+            AmountIngredient.objects.create(
+                ingredient=get_object_or_404(Ingredient, id=ingredient['id']),
+                recipe=instance, amount=amount
+            )
+        instance.save()
         instance.tags.set(tags)
         return instance
 

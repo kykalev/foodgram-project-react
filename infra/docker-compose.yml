@@ -4,6 +4,11 @@ services:
 
   db:
     image: postgres:13.0-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - db_value:/var/lib/postgresql/data/
     env_file:
@@ -22,13 +27,8 @@ services:
 
   frontend:
     image: kukalev/frontend:v1.0
-    # build:
-    #   context: ../frontend
-    #   dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
-    depends_on:
-      - backend
 
   nginx:
     image: nginx:1.19.3

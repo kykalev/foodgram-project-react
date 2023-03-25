@@ -1,6 +1,13 @@
 FoodGramm «Продуктовый помощник»
 =====
 
+Работающий проект
+----------
+
+* адрес http://84.252.143.34/
+* почта admin@admin.ru
+* пароль admin
+
 Описание
 ----------
 
@@ -50,16 +57,13 @@ touch .env
 ```bash 
 docker-compose up -d
 ```
-5. Запуск миграций, сбор статики и заполнение БД:
+5. Запуск миграций, сбор статики, заполнение БД ингредиентами и создание admin:
 ```bash 
 docker-compose exec backend python manage.py migrate
 
 docker-compose exec backend python manage.py collectstatic --no-input 
 
-docker-compose exec backend python manage.py loaddata fixtures.json
+docker-compose exec backend python manage.py csv_to_db ingredients.csv
+
+docker-compose exec backend python manage.py createsuperuser
 ```
-
-
-
-
-

@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         FILENAME = options['name']
-        path = os.path.join('../data', FILENAME)
+        path = os.path.join('data', FILENAME)
         with open(path, 'r', encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file,
                                         fieldnames=['name',
